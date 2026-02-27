@@ -5,6 +5,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 from tqdm import tqdm
+import wandb
 from model import VesuviusModel, dice_loss
 
 class VesuviusDataset(Dataset):
@@ -83,9 +84,22 @@ def validate(model, loader, device):
 if __name__ == "__main__":
     # Hyperparameters
     BATCH_SIZE = 4
-    EPOCHS = 5
+    EPOCHS = 10
     LEARNING_RATE = 1e-4
     TILE_SIZE = 256
+    
+    # Initialize WandB (Experiment Tracking)
+    wandb.init(
+        project="Ink-Alchemist",
+        config={
+            "learning_rate": LEARNING_RATE,
+            "epochs": EPOCHS,
+            "batch_size": BATCH_SIZE,
+            "tile_size": TILE_SIZE,
+            "architecture": "3D-CNN + Transformer",
+            "loss": "BCE + Dice"
+        }
+    )
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
@@ -96,7 +110,8 @@ if __name__ == "__main__":
     lbl_path = os.path.join(data_dir, "fragment1_labels.npy")
     msk_path = os.path.join(data_dir, "fragment1_mask.npy")
     
-    # 1. Dataset & Loader
+    # 1. Dataset & Loader (Fragment-Wise Strategy)
+    # We use Fragment 1 as both proof-of-concept and initial training zone
     train_ds = VesuviusDataset(vol_path, lbl_path, msk_path, tile_size=TILE_SIZE, is_train=True)
     val_ds = VesuviusDataset(vol_path, lbl_path, msk_path, tile_size=TILE_SIZE, is_train=False)
     
@@ -114,9 +129,17 @@ if __name__ == "__main__":
         avg_loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
         avg_dice = validate(model, val_loader, device)
         
+        # Log to WandB
+        wandb.log({
+            "epoch": epoch + 1,
+            "train_loss": avg_loss,
+            "val_dice": avg_dice
+        })
+        
         print(f"Epoch {epoch+1}/{EPOCHS} | Loss: {avg_loss:.4f} | Val Dice: {avg_dice:.4f}")
         
         # Save Checkpoint
         torch.save(model.state_dict(), f"checkpoints/vesuvius_e{epoch+1}.pt")
     
+    wandb.finish()
     print("Training Complete!")
