@@ -1,0 +1,23 @@
+# Data & Volumes
+train/
+processed/
+*.zip
+*.tif
+*.npy
+*.png
+!image_for_eval/*.png
+
+# Scripts & Config
+.kaggle/
+kaggle.json
+checkpoints/
+
+# System & OS
+__pycache__/
+.DS_Store
+Thumbs.db
+
+# Artifacts & Temporary
+brain/
+*.log
+/tmp/
