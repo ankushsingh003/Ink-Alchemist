@@ -90,7 +90,7 @@ if __name__ == "__main__":
     
     # Initialize WandB (Experiment Tracking)
     wandb.init(
-        project="Ink-Alchemist",
+        project="InkSense",
         config={
             "learning_rate": LEARNING_RATE,
             "epochs": EPOCHS,

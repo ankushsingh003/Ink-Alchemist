@@ -1,11 +1,22 @@
-# Ink-Alchemist: 3D Ink Detection & Virtual Unrolling
+# InkSense: 3D Ink Detection & Virtual Unrolling
 
 ![Vesuvius](https://raw.githubusercontent.com/Ankushsingh003/Ink-Alchemist/main/image_for_eval/ir.png)
 
 ## 📜 Overview
-Ink-Alchemist is an industry-level AI pipeline designed for the **Vesuvius Challenge**. It implements a non-destructive restoration workflow to detect ancient Greek ink on carbonized papyrus scrolls using high-resolution 3D X-ray CT scans.
+InkSense is an industry-level AI pipeline designed for the **Vesuvius Challenge**. It implements a non-destructive restoration workflow to detect ancient Greek ink on carbonized papyrus scrolls using high-resolution 3D X-ray CT scans.
 
 Our goal is to turn prehistoric "ash" into digital "ink" through state-of-the-art computer vision and volumetric data engineering.
+
+---
+
+## 🌐 Web Interface
+A premium web-based ink detection analyzer is available in the `ink-alchemist-web/` directory. Upload any image and get a full ink coverage report, heatmap, and downloadable mask.
+
+```bash
+# Start the web server
+python serve_app.py
+# Open http://localhost:3000
+```
 
 ---
 
@@ -31,7 +42,7 @@ Our goal is to turn prehistoric "ash" into digital "ink" through state-of-the-ar
 *This project is built to showcase technical resilience beyond academics:*
 
 1.  **Resilience to Noisy Data**: Our hybrid architecture is specifically designed to bypass CT artifacts and physical "papyrus noise," focusing only on the chemical signature of the ink.
-2.  **Efficient Resource Management**: Ink-Alchemist handles 20GB+ datasets on consumer-grade hardware through memory mapping and high-performance tiling, demonstrating scalable engineering.
+2.  **Efficient Resource Management**: InkSense handles 20GB+ datasets on consumer-grade hardware through memory mapping and high-performance tiling, demonstrating scalable engineering.
 3.  **Domain Adaptation**: The "Virtual Unrolling" techniques implemented here are pivots for **Medical AI** (segmenting micro-tumors) and **Aerospace Inspection** (identifying structural cracks in 3D-scanned parts).
 
 ---
@@ -62,6 +73,10 @@ Our goal is to turn prehistoric "ash" into digital "ink" through state-of-the-ar
    ```bash
    python evaluation.py
    ```
+5. **Web UI**:
+   ```bash
+   python serve_app.py
+   ```
 
 ---
 
@@ -70,6 +85,8 @@ Our goal is to turn prehistoric "ash" into digital "ink" through state-of-the-ar
 - `model.py`: Hybrid 3D-CNN + Transformer architecture.
 - `train.py`: Training loop with WandB integration.
 - `evaluation.py`: Post-processing and threshold optimization.
+- `serve_app.py`: Web server for the InkSense UI.
+- `ink-alchemist-web/`: Frontend Vite web application.
 - `process_fragments/`: Data acquisition scripts.
 - `image_for_eval/`: Metadata visualization.
 

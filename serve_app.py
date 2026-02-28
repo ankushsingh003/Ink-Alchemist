@@ -23,7 +23,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        print(f"🚀 Ink-Alchemist Server running at http://localhost:{PORT}")
+        print(f"🚀 InkSense Server running at http://localhost:{PORT}")
         print(f"Serving files from: {os.path.abspath(DIRECTORY)}")
         try:
             httpd.serve_forever()
