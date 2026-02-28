@@ -1,96 +1,204 @@
-# InkSense: 3D Ink Detection & Virtual Unrolling
+<div align="center">
 
-![Vesuvius](https://raw.githubusercontent.com/Ankushsingh003/Ink-Alchemist/main/image_for_eval/ir.png)
+<img src="https://raw.githubusercontent.com/Ankushsingh003/Ink-Alchemist/main/image_for_eval/ir.png" alt="InkSense Banner" width="700"/>
 
-## 📜 Overview
-InkSense is an industry-level AI pipeline designed for the **Vesuvius Challenge**. It implements a non-destructive restoration workflow to detect ancient Greek ink on carbonized papyrus scrolls using high-resolution 3D X-ray CT scans.
+# 🔬 InkSense
+### AI-Powered 3D Ink Detection & Virtual Unrolling Platform
 
-Our goal is to turn prehistoric "ash" into digital "ink" through state-of-the-art computer vision and volumetric data engineering.
+[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.1-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
+[![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![WandB](https://img.shields.io/badge/WandB-Tracking-FFBE00?style=for-the-badge&logo=weightsandbiases&logoColor=black)](https://wandb.ai)
+[![License](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge)](LICENSE)
+
+*Detect, quantify, and map ancient ink from 3D X-ray CT scans of carbonized papyrus fragments — in milliseconds.*
+
+[**🔬 Live Demo**](#-web-interface) · [**🚀 Quick Start**](#-quick-start) · [**🏗️ Architecture**](#-system-architecture) · [**📊 Web Report Flow**](#-web-report-generation-flow)
+
+</div>
 
 ---
 
-## 🌐 Web Interface
-A premium web-based ink detection analyzer is available in the `ink-alchemist-web/` directory. Upload any image and get a full ink coverage report, heatmap, and downloadable mask.
+## 📜 Overview
 
-```bash
-# Start the web server
-python serve_app.py
-# Open http://localhost:3000
+**InkSense** is an industry-grade AI pipeline built for the **Vesuvius Challenge** — the quest to digitally read thousands of carbonized Greek scrolls buried by Mount Vesuvius in 79 AD.
+
+The pipeline uses a **Hybrid 3D-CNN + Transformer** model to detect the chemical signature of ink residue inside 3D X-ray CT volumes, without physically unrolling or damaging the fragile scrolls. Results are served through a premium web interface that shows ink coverage, heatmaps, and region analysis in real-time.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    A["🗂️ Raw CT Scan Data\n3D X-ray Volumes (20GB+)"] --> B
+
+    subgraph DataEng["📦 Phase 1 — Data Engineering"]
+        B["Memory-Mapped\nNumPy Loader\n(mmap_mode='r')"]
+        B --> C["Surface Extractor\n(Middle 16–32 Z-Slices)"]
+        C --> D["Dynamic Tiler\n(256×256, stride=128)"]
+    end
+
+    D --> E
+
+    subgraph Model["🧠 Phase 2 — Hybrid AI Model"]
+        E["3D-ResNet Backbone\n(Volumetric Feature Extraction)"]
+        E --> F["Transformer Encoder\n(Global Semantic Context)"]
+        F --> G["2D Segmentation Head\n(Pixel-Level Mask Output)"]
+    end
+
+    G --> H
+
+    subgraph MLOps["⚙️ Phase 3 — MLOps Pipeline"]
+        H["WandB Experiment Tracker\n(Loss, Dice, Epoch Metrics)"]
+        H --> I["Threshold Sweeper\n(Best F0.5 / Dice score)"]
+        I --> J["Morphological Denoiser\n(MORPH_OPEN + MORPH_CLOSE)"]
+    end
+
+    J --> K["🖥️ InkSense Web Interface\n(Heatmap + Report)"]
+
+    style DataEng fill:#1e1b4b,stroke:#6366f1,color:#c7d2fe
+    style Model fill:#14532d,stroke:#10b981,color:#a7f3d0
+    style MLOps fill:#7c2d12,stroke:#f59e0b,color:#fef3c7
+    style K fill:#1e293b,stroke:#6366f1,color:#e2e8f0
 ```
 
 ---
 
-## 🛠️ Technical Architecture
+## 🌐 Web Report Generation Flow
 
-### 1. Data Engineering (Phase 1)
-- **Lazy Loading**: Utilizes memory-mapped NumPy arrays to handle massive 3D volumes without RAM bottlenecks.
-- **Surface Extraction**: Targets the middle 16-32 slices where the carbon signal is mathematically strongest.
-- **Dynamic Tiling**: On-the-fly generation of overlapping tiles for high-fidelity training.
+> How InkSense transforms a user-uploaded image into a complete ink analysis report.
 
-### 2. Hybrid Model (Phase 2)
-- **3D-ResNet Backbone**: Extracts textural and volumetric features from the Z-axis (depth).
-- **Transformer Encoder**: Captures global semantic context to recognize character shapes and word patterns.
-- **Head**: 2D Semantic Segmentation head for high-resolution mask prediction.
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as 🖥️ Browser UI
+    participant Engine as ⚙️ JS Analysis Engine
+    participant Canvas as 🎨 HTML Canvas
+    participant Report as 📊 Report Panel
 
-### 3. Integrated MLOps (Phase 3)
-- **Experiment Tracking**: Integrated with **Weights & Biases (WandB)** for real-time monitoring.
-- **Post-Processing**: Threshold sweeping and Morphological Denoising to maximize the F0.5/Dice score.
+    User->>UI: Upload Image (PNG/JPG/TIF)
+    UI->>UI: Detect file format
+    alt TIF/TIFF
+        UI->>Engine: Decode via UTIF.js → RGBA pixels
+    else Standard format
+        UI->>Engine: FileReader → DataURL → Image element
+    end
+    Engine->>Canvas: Draw decoded pixels to sourceCanvas
+    UI->>UI: Show image preview ✅
+    User->>UI: Click "Run Ink Analysis"
+    UI->>Engine: Start processing steps (animated)
+    loop 8 Processing Steps
+        Engine->>UI: Update step label + progress bar
+    end
+    Engine->>Canvas: getImageData() → pixel array
+    Engine->>Engine: Compute luminance & saturation per pixel
+    Engine->>Engine: Build inkMap[] (0.0–1.0 strength per pixel)
+    Engine->>Engine: Count ink pixels & coverage %
+    Engine->>Engine: estimateRegions() → BFS connected components
+    Engine->>Canvas: Draw dimmed original + heatmap overlay
+    Engine->>Canvas: Draw bounding box around ink region
+    Engine->>Report: Render metrics (Coverage %, Ink px, Regions, Latency)
+    Engine->>Report: Animate coverage bar
+    Engine->>Report: Write plain-English summary
+    Report->>User: Full ink report displayed ✅
+    User->>UI: Click "Download Ink Mask"
+    UI->>User: canvas.toDataURL() → PNG download
+```
 
 ---
 
-## 🏆 Industrial Impact & "Problem-Solver" Traits
-*This project is built to showcase technical resilience beyond academics:*
+## 🛠️ Technical Stack
 
-1.  **Resilience to Noisy Data**: Our hybrid architecture is specifically designed to bypass CT artifacts and physical "papyrus noise," focusing only on the chemical signature of the ink.
-2.  **Efficient Resource Management**: InkSense handles 20GB+ datasets on consumer-grade hardware through memory mapping and high-performance tiling, demonstrating scalable engineering.
-3.  **Domain Adaptation**: The "Virtual Unrolling" techniques implemented here are pivots for **Medical AI** (segmenting micro-tumors) and **Aerospace Inspection** (identifying structural cracks in 3D-scanned parts).
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Data** | NumPy `mmap_mode='r'` | Handle 20GB+ CT volumes without RAM overflow |
+| **Model** | PyTorch 3D-ResNet + Transformer | Volumetric feature extraction + semantic mapping |
+| **Training** | WandB + BCE + Dice Loss | Experiment tracking and hybrid loss optimisation |
+| **Post-Processing** | OpenCV Morphology | Threshold sweeping + noise denoising |
+| **Web Frontend** | Vite + Vanilla JS | Ultra-fast, zero-framework interactive UI |
+| **TIF Decoding** | UTIF.js | Client-side TIFF byte-level decoder |
+| **Web Server** | Python `http.server` | Static file serving of production build |
+| **Container** | Docker Multi-Stage | Node → Python build pipeline |
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.8+
-- PyTorch (CUDA recommended)
-- `pip install -r requirements.txt` (or manually install `wandb`, `opencv-python`, `torch`, `tqdm`)
+### 1. Clone & Install
+```bash
+git clone https://github.com/Ankushsingh003/Ink-Alchemist.git
+cd Ink-Alchemist
+pip install -r requirements.txt
+```
 
-### Execution Flow
-1. **Download & Organize**:
-   ```powershell
-   cd process_fragments
-   ./download_fragment_1.ps1
-   ./unzip_fragment_1.ps1
-   ```
-2. **Preprocess**:
-   ```bash
-   python data_preprocessing.py --fragment 1
-   ```
-3. **Train**:
-   ```bash
-   python train.py
-   ```
-4. **Evaluate**:
-   ```bash
-   python evaluation.py
-   ```
-5. **Web UI**:
-   ```bash
-   python serve_app.py
-   ```
+### 2. Prepare Data
+```powershell
+cd process_fragments
+./download_fragment_1.ps1
+./unzip_fragment_1.ps1
+```
+
+### 3. Run the AI Pipeline
+```bash
+# Preprocess CT scan volumes
+python data_preprocessing.py --fragment 1
+
+# Train the model (10 epochs, WandB logged)
+python train.py
+
+# Evaluate & optimise thresholds
+python evaluation.py
+```
+
+### 4. Launch the Web Interface
+```bash
+# Serve the InkSense web app
+python serve_app.py
+# → Open http://localhost:3000
+```
+
+---
+
+## 🏆 Industrial Impact
+
+| Trait | Detail |
+|---|---|
+| 🛡️ **Noise Resilience** | Bypasses CT artifacts and papyrus noise — focuses on the ink's chemical signature |
+| ⚡ **Resource Efficiency** | Handles 20GB+ volumes on consumer hardware via memory mapping + tiling |
+| 🔬 **Domain Adaptability** | Techniques transfer to Medical AI (CT/MRI tumour segmentation) and Aerospace NDT |
+| 🌍 **Cultural Impact** | Enables reading of thousands of lost ancient scrolls without physical damage |
 
 ---
 
 ## 🏗️ Project Structure
-- `data_preprocessing.py`: Volume compression and tiling system.
-- `model.py`: Hybrid 3D-CNN + Transformer architecture.
-- `train.py`: Training loop with WandB integration.
-- `evaluation.py`: Post-processing and threshold optimization.
-- `serve_app.py`: Web server for the InkSense UI.
-- `ink-alchemist-web/`: Frontend Vite web application.
-- `process_fragments/`: Data acquisition scripts.
-- `image_for_eval/`: Metadata visualization.
+
+```
+InkSense/
+├── model.py                  # Hybrid 3D-CNN + Transformer architecture
+├── train.py                  # Training loop with WandB integration
+├── evaluation.py             # Post-processing & threshold optimisation
+├── data_preprocessing.py     # Volume compression and tiling system
+├── visualize_impact.py       # Presentation heatmap generator
+├── serve_app.py              # Python web server (port 3000)
+├── Dockerfile                # Multi-stage Docker build (Node → Python)
+├── requirements.txt          # Python dependencies
+├── ink-alchemist-web/        # Vite web application (InkSense UI)
+│   ├── index.html            # Company website + analyser tool
+│   ├── src/
+│   │   ├── main.js           # Ink detection engine + UI logic
+│   │   └── style.css         # Glassmorphism design system
+│   └── dist/                 # Production build (served by serve_app.py)
+├── process_fragments/        # Data acquisition PowerShell scripts
+├── processed/                # Pre-processed .npy volumes
+├── checkpoints/              # Saved model weights
+└── results/                  # Output heatmaps and reports
+```
 
 ---
 
-## 🌟 Industry Impact
-This project replaces physical archaeology with **Virtual Unrolling**, enabling the reading of thousands of lost scrolls without risking physical damage. The techniques developed here are directly applicable to Medical Imaging (CT/MRI) and Material Science (Non-destructive testing).
+<div align="center">
+
+Made with ❤️ for the Vesuvius Challenge · **InkSense** © 2025
+
+</div>
